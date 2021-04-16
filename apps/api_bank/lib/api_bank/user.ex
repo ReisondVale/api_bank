@@ -18,12 +18,12 @@ defmodule ApiBank.User do
 
   def changeset(params) do
     %__MODULE__{}
-    |> cast(params, @required_params)
+    |> cast(params, [:name, :age, :email, :password_hash, :balance])
     |> validate_required(@required_params)
     |> validate_length(:password_hash, min: 6)
     |> validate_number(:age, greater_than_or_equal_to: 18)
+    |> validate_number(:balance, greater_than_or_equal_to: 0)
     |> validate_format(:email, ~r/@/)
     |> unique_constraint([:email])
-    |> check_constraint(:balance, name: :balance_must_be_positive_or_zero)
   end
 end
