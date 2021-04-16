@@ -11,7 +11,7 @@ defmodule ApiBank.User do
     field :age, :integer
     field :email, :string
     field :password_hash, :string
-    field :balance, :integer, default: 100000
+    field :balance, :integer, default: 100_000
 
     timestamps()
   end
