@@ -16,8 +16,8 @@ defmodule ApiBank.User do
     timestamps()
   end
 
-  def changeset(params) do
-    %__MODULE__{}
+  def changeset(struct \\ %__MODULE__{}, params) do
+    struct
     |> cast(params, [:name, :age, :email, :password_hash, :balance])
     |> validate_required(@required_params)
     |> validate_length(:password_hash, min: 6)
