@@ -23,8 +23,8 @@ defmodule ApiBank.Accounts.Operation do
     |> Multi.run(:update_user, fn repo, %{get_user: user} ->
       params = %{balance: account_operation(user, value, operation)}
 
-      params
-      |> User.changeset(user)
+      user
+      |> User.changeset(params)
       |> repo.update()
     end)
 

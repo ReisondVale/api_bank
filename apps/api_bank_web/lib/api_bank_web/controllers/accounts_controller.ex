@@ -7,7 +7,7 @@ defmodule ApiBankWeb.AccountsController do
     with {:ok, %{user: user}} <- ApiBank.withdraw(params) do
       conn
       |> put_status(:ok)
-      |> render("update.json", user: user)
+      |> render("withdraw.json", user: user)
     end
   end
 
@@ -15,7 +15,15 @@ defmodule ApiBankWeb.AccountsController do
     with {:ok, %{user: user}} <- ApiBank.deposit(params) do
       conn
       |> put_status(:ok)
-      |> render("update.json", user: user)
+      |> render("deposit.json", user: user)
+    end
+  end
+
+  def transaction(conn, params) do
+    with {:ok, %{user: user}} <- ApiBank.transaction(params) do
+      conn
+      |> put_status(:ok)
+      |> render("transaction.json", user: user)
     end
   end
 end
