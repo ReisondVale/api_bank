@@ -26,4 +26,11 @@ defmodule ApiBank.User do
     |> validate_format(:email, ~r/@/)
     |> unique_constraint([:email])
   end
+
+  def balance_update_changeset(struct, params) do
+    struct
+    |> cast(params, [:balance])
+    |> validate_required([:balance])
+    |> validate_number(:balance, greater_than_or_equal_to: 0, message: "Insufficient funds")
+  end
 end

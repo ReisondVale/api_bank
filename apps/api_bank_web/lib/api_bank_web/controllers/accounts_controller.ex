@@ -20,10 +20,10 @@ defmodule ApiBankWeb.AccountsController do
   end
 
   def transaction(conn, params) do
-    with {:ok, %{user: user}} <- ApiBank.transaction(params) do
+    with {:ok, result} <- ApiBank.transaction(params) do
       conn
       |> put_status(:ok)
-      |> render("transaction.json", user: user)
+      |> render("transaction.json", result: result)
     end
   end
 end

@@ -1,28 +1,36 @@
 defmodule ApiBank.Accounts.Transaction do
   alias Ecto.Multi
 
-  alias ApiBank.{Accounts.Operation, Repo}
-  alias ApiBank.Accounts.Transactions.Response, as: TransactionResponse
+  alias ApiBank.User
+  alias ApiBank.Repo
 
   def call(%{"from" => from_id, "to" => to_id, "value" => value}) do
-    withdraw_params = build_params(from_id, value)
-    deposit_params = build_params(to_id, value)
 
-    Multi.new()
-    |> Multi.merge(fn _changes -> Operation.call(withdraw_params, :withdraw) end)
-    |> Multi.merge(fn _changes -> Operation.call(deposit_params, :deposit) end)
-    |> run_transaction()
-  end
-
-  defp build_params(id, value), do: %{"id" => id, "value" => value}
-
-  defp run_transaction(multi) do
-    case Repo.transaction(multi) do
-      {:error, _operation, reason, _changes} ->
-        {:error, reason}
-
-      {:ok, %{deposit: to_user, withdraw: from_user}} ->
-        {:ok, TransactionResponse.build(from_user, to_user)}
+    case Multi.new()
+      |> Multi.run(:from_account, fn _repo, _changes -> ApiBank.get_user(%{"id" => from_id}) end)
+      |> Multi.run(:to_account, fn _repo, _changes -> ApiBank.get_user(%{"id" => to_id}) end)
+      |> Multi.run(:from_account_new_balance, fn _repo, %{from_account: %{balance: balance} = from_account} ->
+        case from_account
+          |> User.balance_update_changeset(%{balance: balance - value})
+          |> Repo.update
+        do
+          {:ok, user} -> {:ok, Map.fetch!(user, :balance)}
+          error -> error
+        end
+      end)
+      |> Multi.run(:to_account_new_balance, fn _repo, %{to_account: %{balance: balance} = to_account} ->
+        case to_account
+          |> User.balance_update_changeset(%{balance: balance + value})
+          |> Repo.update
+        do
+          {:ok, user} -> {:ok, Map.fetch!(user, :balance)}
+          error -> error
+        end
+      end)
+      |> Repo.transaction()
+    do
+      {:ok, result} -> {:ok, result}
+      {:error, _at, changeset, _value } -> {:error, changeset}
     end
   end
 end
