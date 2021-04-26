@@ -11,19 +11,26 @@ defmodule ApiBank.User do
     field :age, :integer
     field :email, :string
     field :password_hash, :string
-    field :balance, :integer, default: 100000
+    field :balance, :integer, default: 100_000
 
     timestamps()
   end
 
-  def changeset(params) do
-    %__MODULE__{}
-    |> cast(params, @required_params)
+  def changeset(struct \\ %__MODULE__{}, params) do
+    struct
+    |> cast(params, [:name, :age, :email, :password_hash, :balance])
     |> validate_required(@required_params)
     |> validate_length(:password_hash, min: 6)
     |> validate_number(:age, greater_than_or_equal_to: 18)
+    |> validate_number(:balance, greater_than_or_equal_to: 0)
     |> validate_format(:email, ~r/@/)
     |> unique_constraint([:email])
-    |> check_constraint(:balance, name: :balance_must_be_positive_or_zero)
+  end
+
+  def balance_update_changeset(struct, params) do
+    struct
+    |> cast(params, [:balance])
+    |> validate_required([:balance])
+    |> validate_number(:balance, greater_than_or_equal_to: 0, message: "Insufficient funds")
   end
 end
